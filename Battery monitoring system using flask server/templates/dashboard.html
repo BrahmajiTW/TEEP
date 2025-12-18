@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Battery Management Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: #020617;
+            color: #e5e7eb;
+            font-family: Segoe UI, Arial;
+            padding: 16px;
+        }
+        h1 { margin-bottom: 12px; font-size: 22px; }
+        h3 { margin-top: 0; font-size: 16px; }
+        p { margin: 6px 0; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .card {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.5);
+        }
+        .value {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            display: inline-block;
+            margin-top: 6px;
+        }
+        .charging { background: #16a34a; }
+        .discharging { background: #dc2626; }
+        #log {
+            height: 180px;
+            overflow-y: auto;
+            background: #020617;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            color: #38bdf8;
+        }
+        canvas { height: 200px !important; }
+        @media (max-width: 768px) {
+            h1 { font-size: 18px; }
+            .value { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>🔋 Battery Management System</h1>
+
+<div class="grid">
+    <div class="card">
+        <div>Battery Percentage</div>
+        <div class="value" id="percent">0%</div>
+    </div>
+
+    <div class="card">
+        <div>Voltage</div>
+        <div class="value" id="voltage">0.00 V</div>
+    </div>
+
+    <div class="card">
+        <div>Status</div>
+        <span class="badge" id="status">---</span>
+        <div id="time">Time to Full: --</div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <canvas id="chart"></canvas>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <h3>📈 Battery Charging Curve (0–100%)</h3>
+    <canvas id="chargeCurve"></canvas>
+</div>
+
+<div class="grid" style="margin-top:20px;">
+    <div class="card">
+        <h3>🖥 System Command Log</h3>
+        <pre id="log"></pre>
+    </div>
+
+    <div class="card">
+        <h3>🔋 Li-ion Battery Information</h3>
+        <p><b>Type:</b> Single-cell Lithium-Ion</p>
+        <p><b>Nominal Voltage:</b> 3.7 V</p>
+        <p><b>Max Voltage:</b> 4.2 V</p>
+        <p><b>Cut-off Voltage:</b> ~3.0 V</p>
+        <p style="font-size:13px; color:#cbd5f5;">
+            Li-ion batteries store energy by transferring lithium ions between
+            the anode and cathode. Controlled charging and discharging ensures
+            safety, efficiency, and long service life.
+        </p>
+    </div>
+
+    <div class="card">
+        <h3>🧠 State of Health (SoH)</h3>
+        <p style="font-size:13px; color:#cbd5f5; line-height:1.5;">
+            State of Health represents the battery’s aging condition compared
+            to a new battery. Factors affecting SoH include charge cycles,
+            temperature, overcharging, and deep discharge. Maintaining good
+            SoH improves reliability and lifespan.
+        </p>
+    </div>
+
+    <div class="card">
+        <h3>🔥 Battery Safety Rules</h3>
+        <ul style="font-size:13px; color:#cbd5f5; padding-left:16px;">
+            <li>Avoid charging above 4.2 V</li>
+            <li>Do not discharge below 3.0 V</li>
+            <li>Prevent overheating</li>
+            <li>Use proper charging circuits</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>📉 Charge / Discharge Cycles</h3>
+        <p><b>Estimated Cycles:</b> <span id="cycles">0</span></p>
+        <p style="font-size:13px; color:#cbd5f5;">
+            One cycle equals a full charge and discharge. Most Li-ion batteries
+            support 300–500 cycles before noticeable capacity reduction.
+        </p>
+    </div>
+
+    <div class="card">
+        <h3>🧾 About This System</h3>
+        <p style="font-size:13px; color:#cbd5f5; line-height:1.5;">
+            This Battery Management Dashboard integrates an ESP32 with a Flask
+            web server to monitor real-time battery parameters, provide safety
+            alerts, visualize trends, and support intelligent energy management
+            for embedded systems.
+        </p>
+    </div>
+</div>
+
+    <div class="card">
+        <h3>🔋 Li-ion Battery Information</h3>
+        <p><b>Battery Type:</b> Single-cell Lithium-Ion (Li-ion)</p>
+        <p><b>Nominal Voltage:</b> 3.7 V</p>
+        <p><b>Fully Charged Voltage:</b> 4.2 V</p>
+        <p><b>Cut-off Voltage:</b> ~3.0 V</p>
+        <hr>
+        <p><b>How it works:</b></p>
+        <p style="font-size:13px; line-height:1.5; color:#cbd5f5;">
+            A Li-ion battery stores energy by moving lithium ions between the
+            anode and cathode during charge and discharge cycles. When charging,
+            ions move from the cathode to the anode; during discharge, they move
+            back while supplying power to the load.
+        </p>
+        <p style="font-size:13px; line-height:1.5; color:#cbd5f5;">
+            Proper monitoring of voltage and state-of-charge (SoC) is critical
+            to prevent overcharging, deep discharge, overheating, and to extend
+            battery lifespan. This dashboard continuously tracks these parameters
+            in real time.
+        </p>
+    </div>
+</div>
+
+<script>
+let dataPoints = [];
+let labels = [];
+let lastAlert = 0;
+
+// Live battery percentage chart
+const chart = new Chart(document.getElementById('chart'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Battery %',
+            data: dataPoints,
+            borderWidth: 2
+        }]
+    },
+    options: {
+        scales: { y: { min: 0, max: 100 } }
+    }
+});
+
+async function updateDashboard() {
+    const res = await fetch('/data');
+    const d = await res.json();
+
+    document.getElementById('percent').innerText = d.percentage + '%';
+    document.getElementById('voltage').innerText = d.voltage.toFixed(2) + ' V';
+
+    const status = document.getElementById('status');
+    if (d.charging) {
+        status.innerText = 'CHARGING';
+        status.className = 'badge charging';
+    } else {
+        status.innerText = 'DISCHARGING';
+        status.className = 'badge discharging';
+    }
+
+    labels.push(d.timestamp);
+    dataPoints.push(d.percentage);
+    if (labels.length > 30) {
+        labels.shift();
+        dataPoints.shift();
+    }
+    chart.update();
+
+    updateChargeCurve(d.percentage);
+
+
+    estimateTime(d.percentage, d.charging);
+    alerts(d.percentage);
+    logCommand(d);
+}
+
+function estimateTime(p, charging) {
+    if (!charging) {
+        document.getElementById('time').innerText = 'Time to Full: --';
+        return;
+    }
+    const rate = 1; // % per minute (example)
+    const min = Math.round((100 - p) / rate);
+    document.getElementById('time').innerText = 'Time to Full: ' + min + ' min';
+}
+
+function alerts(p) {
+    if (p >= 25 && lastAlert < 25) alert('Battery reached 25%');
+    if (p >= 50 && lastAlert < 50) alert('Battery reached 50%');
+    if (p >= 75 && lastAlert < 75) alert('Battery reached 75%');
+    if (p >= 90 && lastAlert < 90) alert('⚠ Remove charging soon');
+    if (p >= 95 && lastAlert < 95) alert('🔴 CRITICAL: Unplug charger NOW');
+    lastAlert = p;
+}
+
+function logCommand(d) {
+    const log = document.getElementById('log');
+    log.textContent += `[${d.timestamp}] RX → voltage=${d.voltage}V | percent=${d.percentage}% | charging=${d.charging}
+`;
+    log.scrollTop = log.scrollHeight;
+}
+
+// Charging curve chart (ideal Li-ion CC–CV curve)
+const curveCtx = document.getElementById('chargeCurve').getContext('2d');
+let curveData = [];
+let curveLabels = [];
+
+const chargeCurve = new Chart(curveCtx, {
+    type: 'line',
+    data: {
+        labels: curveLabels,
+        datasets: [{
+            label: 'Charging Progress %',
+            data: curveData,
+            borderWidth: 2
+        }]
+    },
+    options: {
+        scales: {
+            x: { title: { display: true, text: 'Time' } },
+            y: { min: 0, max: 100, title: { display: true, text: 'State of Charge (%)' } }
+        }
+    }
+});
+
+function updateChargeCurve(p) {
+    if (curveData.length === 0 || p > curveData[curveData.length - 1]) {
+        curveData.push(p);
+        curveLabels.push(new Date().toLocaleTimeString());
+        if (curveData.length > 60) {
+            curveData.shift();
+            curveLabels.shift();
+        }
+        chargeCurve.update();
+    }
+}
+
+setInterval(updateDashboard, 2000);
+</script>
+
+</body>
+</html>
