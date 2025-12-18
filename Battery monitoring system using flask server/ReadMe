@@ -1,0 +1,199 @@
+# 🔋 Single-Cell Li-ion Battery Monitoring System  
+**ESP32 + INA219 + TP4056 + Flask Dashboard**
+
+A complete IoT-based battery monitoring system for a **single-cell Li-ion battery**, developed using **ESP32 (MicroPython)**, **INA219 voltage/current sensor**, **TP4056 charging module**, and a **Flask web dashboard**.
+
+This system monitors battery voltage, estimates battery percentage, detects charging status, and visualizes data in real time on a professional, responsive dashboard.
+
+> 📱 Mobile application development is planned for future work and is **not included** in this version.
+
+---
+
+## 📌 Features
+
+- Real-time battery voltage monitoring
+- Battery percentage (State of Charge) estimation
+- Wi-Fi data transmission using ESP32
+- Flask-based web dashboard
+- Battery charging curve (0–100%)
+- System command log (ESP32 → Server)
+- Battery information widget
+- Alert pop-ups at:
+  - 25%, 50%, 75% (info)
+  - 90% (warning: remove charging soon)
+  - >95% (critical: disconnect charger)
+- Fully responsive UI (desktop & tablet)
+
+---
+
+## 📁 Project Structure
+
+├── esp32/
+│ ├── main.py # ESP32 MicroPython code
+│ └── ina219.py # MicroPython-compatible INA219 driver
+│
+├── server/
+│ ├── app.py # Flask backend
+│ ├── templates/
+│ │ └── index.html # Dashboard UI
+│ └── static/
+│ ├── css/
+│ └── js/
+│
+├── report/
+│ └── Single_Cell_Battery_Monitoring_Report.pdf
+│
+└── README.md
+
+
+
+
+---
+
+## 🧰 Hardware Requirements
+
+- ESP32 development board
+- INA219 current & voltage sensor
+- TP4056 Li-ion charging module
+- Single-cell 3.7V Li-ion battery
+- USB cable
+- Jumper wires
+
+---
+
+## 🔌 Hardware Wiring
+
+### INA219 → ESP32
+
+| INA219 Pin | ESP32 Pin |
+|-----------|-----------|
+| VCC | 3.3V |
+| GND | GND |
+| SDA | GPIO 21 |
+| SCL | GPIO 22 |
+| V+ | Battery + |
+
+### TP4056 → Battery
+
+| TP4056 Pin | Connection |
+|-----------|------------|
+| B+ | Battery + |
+| B− | Battery − |
+
+---
+
+## 🧑‍💻 ESP32 Software Setup (MicroPython)
+
+### 1️⃣ Flash MicroPython
+
+- Download ESP32 MicroPython firmware:  
+  https://micropython.org/download/esp32/
+- Flash using **esptool.py** or **Thonny**
+
+---
+
+### 2️⃣ Install Thonny
+
+- Download: https://thonny.org/
+- Select interpreter: **MicroPython (ESP32)**
+
+---
+
+### 3️⃣ Upload ESP32 Files
+
+Upload these files to ESP32 using Thonny:
+- `main.py`
+- `ina219.py`
+
+---
+
+### 4️⃣ Configure Wi-Fi & Server
+
+Edit `main.py`:
+
+```python
+WIFI_SSID = "YOUR_WIFI_NAME"
+WIFI_PASS = "YOUR_WIFI_PASSWORD"
+SERVER_URL = "http://YOUR_PC_IP:5000/update"
+
+
+🌐 Flask Server Setup
+1️⃣ (Optional) Create Virtual Environment
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+
+2️⃣ Install Dependencies
+pip install flask
+
+3️⃣ Run Flask Server
+cd server
+python app.py
+
+
+Server will start at:
+
+http://0.0.0.0:5000
+
+📊 Dashboard Usage
+
+Start Flask server
+
+Power the ESP32
+
+ESP32 connects to Wi-Fi
+
+Battery data is sent to server
+
+Dashboard updates in real time
+
+You can monitor:
+
+Voltage
+
+Battery percentage
+
+Charging behavior
+
+System logs
+
+🧪 Testing & Validation
+
+Verified stable voltage readings using averaging
+
+Successful Wi-Fi data transmission
+
+Real-time dashboard updates
+
+Serial output monitored via Thonny
+
+⚠️ Known Limitations
+
+Battery percentage is voltage-based (not coulomb counting)
+
+Battery health (SoH) not implemented
+
+Mobile application not included
+
+🚀 Future Enhancements
+
+Current-based charging detection
+
+Charging time estimation
+
+Battery health analysis
+
+Native mobile application
+
+Safety fault detection
+
+📜 License
+
+This project is intended for educational and research purposes.
+
+👤 Author
+
+Brahmaji CH
+Single-Cell Li-ion Battery Monitoring System
+
+
+---
